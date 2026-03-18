@@ -1,0 +1,4 @@
+interface:
+  display_name: "Build Messaging Architecture"
+  short_description: "Build a proof-backed message house"
+  default_prompt: "Use $build-messaging-architecture to convert positioning into a message house with proof and objections."

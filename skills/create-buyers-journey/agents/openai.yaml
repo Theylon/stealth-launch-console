@@ -1,0 +1,4 @@
+interface:
+  display_name: "Create Buyers Journey"
+  short_description: "Map the full buyer journey"
+  default_prompt: "Use $create-buyers-journey to map the buyer journey, stage touchpoints, and content needs."

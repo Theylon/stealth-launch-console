@@ -1,0 +1,4 @@
+interface:
+  display_name: "Create Category Positioning"
+  short_description: "Design a market category strategy"
+  default_prompt: "Use $create-category-positioning to design a category creation or category reframing strategy."

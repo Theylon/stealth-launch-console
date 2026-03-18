@@ -1,0 +1,4 @@
+interface:
+  display_name: "Create Messaging"
+  short_description: "Build modular website messaging"
+  default_prompt: "Use $create-messaging to create modular website messaging and reusable copy frameworks."

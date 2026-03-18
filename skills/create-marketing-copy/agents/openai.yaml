@@ -1,0 +1,4 @@
+interface:
+  display_name: "Create Marketing Copy"
+  short_description: "Generate multi-format marketing copy"
+  default_prompt: "Use $create-marketing-copy to create conversion-focused copy across formats and channels."

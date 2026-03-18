@@ -1,0 +1,4 @@
+interface:
+  display_name: "Create Ecosystem Messaging"
+  short_description: "Create partner and integration messaging"
+  default_prompt: "Use $create-ecosystem-messaging to create integration and partner ecosystem messaging."

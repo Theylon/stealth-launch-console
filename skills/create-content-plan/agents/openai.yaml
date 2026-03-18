@@ -1,0 +1,4 @@
+interface:
+  display_name: "Create Content Plan"
+  short_description: "Build a content strategy plan"
+  default_prompt: "Use $create-content-plan to build a content strategy, pillars, and a 20-day calendar."

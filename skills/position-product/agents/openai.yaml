@@ -1,0 +1,4 @@
+interface:
+  display_name: "Position Product"
+  short_description: "Define differentiated market position"
+  default_prompt: "Use $position-product to define my product positioning against real alternatives."

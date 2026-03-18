@@ -1,0 +1,4 @@
+interface:
+  display_name: "Create Positioning"
+  short_description: "Build a full positioning canvas"
+  default_prompt: "Use $create-positioning to build a detailed market positioning canvas with competitors and proof."

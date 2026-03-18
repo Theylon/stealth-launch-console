@@ -1,0 +1,4 @@
+interface:
+  display_name: "Audit Messaging"
+  short_description: "Audit copy for clarity and proof"
+  default_prompt: "Use $audit-messaging to review my messaging for clarity, differentiation, and proof gaps."

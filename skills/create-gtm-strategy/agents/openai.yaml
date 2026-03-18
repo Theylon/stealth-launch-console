@@ -1,0 +1,4 @@
+interface:
+  display_name: "Create GTM Strategy"
+  short_description: "Build a launch GTM strategy"
+  default_prompt: "Use $create-gtm-strategy to create a go-to-market strategy for a launch or market entry."

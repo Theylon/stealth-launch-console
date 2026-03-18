@@ -1,0 +1,4 @@
+interface:
+  display_name: "Capture Market Context"
+  short_description: "Build reusable market context brief"
+  default_prompt: "Use $capture-market-context to turn my notes into a reusable B2B SaaS market context brief."

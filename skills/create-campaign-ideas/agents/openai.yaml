@@ -1,0 +1,4 @@
+interface:
+  display_name: "Create Campaign Ideas"
+  short_description: "Generate executable campaign concepts"
+  default_prompt: "Use $create-campaign-ideas to generate campaign concepts with channels, assets, and execution plans."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Build 3D Landing Page"
+  short_description: "Create single-file 3D landing pages"
+  default_prompt: "Use $build-3d-landing-page to create a single-file landing page with Three.js, Tailwind, and scroll-reactive 3D visuals."

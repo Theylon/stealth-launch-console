@@ -1,0 +1,4 @@
+interface:
+  display_name: "Create Value Proposition"
+  short_description: "Map features to business outcomes"
+  default_prompt: "Use $create-value-proposition to build value ladders from features to outcomes."

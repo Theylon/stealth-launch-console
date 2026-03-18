@@ -1,0 +1,4 @@
+interface:
+  display_name: "Create Referral Program"
+  short_description: "Design a referral program"
+  default_prompt: "Use $create-referral-program to design a referral or affiliate program with incentives and mechanics."

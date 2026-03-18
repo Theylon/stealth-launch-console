@@ -1,0 +1,4 @@
+interface:
+  display_name: "Create ICP Sizing"
+  short_description: "Define ICP and market sizing"
+  default_prompt: "Use $create-icp-sizing to define my ICP, tiers, and realistic TAM/SAM/SOM sizing."

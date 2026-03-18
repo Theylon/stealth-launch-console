@@ -1,0 +1,4 @@
+interface:
+  display_name: "Create Feature Messaging"
+  short_description: "Position one feature across channels"
+  default_prompt: "Use $create-feature-messaging to position one feature with outcome-led messaging and launch assets."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Create Brand Voice"
+  short_description: "Define brand voice standards"
+  default_prompt: "Use $create-brand-voice to define brand voice, tone rules, and channel adaptations."

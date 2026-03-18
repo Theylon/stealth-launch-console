@@ -1,0 +1,4 @@
+interface:
+  display_name: "Choose Ideal Customer"
+  short_description: "Select the best ICP and wedge"
+  default_prompt: "Use $choose-ideal-customer to identify the sharpest B2B SaaS ICP and wedge."

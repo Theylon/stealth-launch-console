@@ -1,0 +1,4 @@
+interface:
+  display_name: "Create Landing Page"
+  short_description: "Write a conversion landing page"
+  default_prompt: "Use $create-landing-page to create a conversion-focused landing page using persuasion frameworks."

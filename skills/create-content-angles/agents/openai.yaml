@@ -1,0 +1,4 @@
+interface:
+  display_name: "Create Content Angles"
+  short_description: "Generate differentiated story angles"
+  default_prompt: "Use $create-content-angles to generate differentiated content angles for my topic and audience."

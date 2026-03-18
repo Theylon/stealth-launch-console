@@ -1,0 +1,4 @@
+interface:
+  display_name: "Write Landing Page Copy"
+  short_description: "Draft focused campaign page copy"
+  default_prompt: "Use $write-landing-page-copy to draft a focused landing page for one offer or use case."

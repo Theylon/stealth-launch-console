@@ -1,0 +1,4 @@
+interface:
+  display_name: "Write Homepage Copy"
+  short_description: "Draft homepage messaging and sections"
+  default_prompt: "Use $write-homepage-copy to draft homepage copy from my approved messaging."

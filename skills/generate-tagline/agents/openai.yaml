@@ -1,0 +1,4 @@
+interface:
+  display_name: "Generate Tagline"
+  short_description: "Create taglines and slogan options"
+  default_prompt: "Use $generate-tagline to create strategic tagline options and select the strongest finalists."

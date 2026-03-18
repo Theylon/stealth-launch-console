@@ -1,0 +1,4 @@
+interface:
+  display_name: "Create Product Insights"
+  short_description: "Synthesize product and customer insight"
+  default_prompt: "Use $create-product-insights to turn customer feedback and product signals into prioritized insights."

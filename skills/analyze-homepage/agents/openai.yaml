@@ -1,0 +1,4 @@
+interface:
+  display_name: "Analyze Homepage"
+  short_description: "Audit homepage conversion performance"
+  default_prompt: "Use $analyze-homepage to audit my homepage for conversion and UX issues."

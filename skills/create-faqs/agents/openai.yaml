@@ -1,0 +1,4 @@
+interface:
+  display_name: "Create FAQs"
+  short_description: "Build SEO and objection FAQs"
+  default_prompt: "Use $create-faqs to generate FAQs that answer objections and improve discoverability."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Write Email Sequence"
+  short_description: "Draft stage-aware email sequences"
+  default_prompt: "Use $write-email-sequence to draft an email sequence matched to buyer awareness and proof."

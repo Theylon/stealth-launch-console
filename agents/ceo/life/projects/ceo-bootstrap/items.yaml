@@ -1,0 +1,35 @@
+- id: ceo-bootstrap-001
+  fact: "CEO instructions file path is /Users/eylon/Claude/marketing/agents/ceo/AGENTS.md."
+  category: milestone
+  timestamp: "2026-03-10"
+  source: "2026-03-10"
+  status: active
+  superseded_by: null
+  related_entities:
+    - projects/ceo-bootstrap
+  last_accessed: "2026-03-10"
+  access_count: 1
+
+- id: ceo-bootstrap-002
+  fact: "Founding Engineer agent e0791edd-6823-482b-a3b6-a4251f73a30b was hired and approval eaa0dd6a-66dc-43d5-a169-7c6b39b80378 is approved."
+  category: milestone
+  timestamp: "2026-03-10"
+  source: "2026-03-10"
+  status: active
+  superseded_by: null
+  related_entities:
+    - projects/ceo-bootstrap
+  last_accessed: "2026-03-10"
+  access_count: 1
+
+- id: ceo-bootstrap-003
+  fact: "Issue MAR-1 (Create your CEO HEARTBEAT.md) is completed after approval resolution."
+  category: status
+  timestamp: "2026-03-10"
+  source: "2026-03-10"
+  status: active
+  superseded_by: null
+  related_entities:
+    - projects/ceo-bootstrap
+  last_accessed: "2026-03-10"
+  access_count: 1

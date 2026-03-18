@@ -1,0 +1,4 @@
+interface:
+  display_name: "Create Product Description"
+  short_description: "Write product descriptions by format"
+  default_prompt: "Use $create-product-description to write product descriptions across ecommerce, email, and catalog formats."

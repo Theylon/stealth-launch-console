@@ -1,0 +1,4 @@
+interface:
+  display_name: "Define Value Proposition"
+  short_description: "Turn jobs into value propositions"
+  default_prompt: "Use $define-value-proposition to turn buyer jobs and pains into a clear value proposition."

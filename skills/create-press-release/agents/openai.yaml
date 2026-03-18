@@ -1,0 +1,4 @@
+interface:
+  display_name: "Create Press Release"
+  short_description: "Write a press release and plan"
+  default_prompt: "Use $create-press-release to write a press release with quotes and distribution strategy."

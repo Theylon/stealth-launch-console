@@ -1,0 +1,4 @@
+interface:
+  display_name: "Create Pricing Strategy"
+  short_description: "Design pricing tiers and strategy"
+  default_prompt: "Use $create-pricing-strategy to design my pricing model, tiers, and pricing page strategy."

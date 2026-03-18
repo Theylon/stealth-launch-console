@@ -1,0 +1,4 @@
+interface:
+  display_name: "Generate Persona"
+  short_description: "Build one detailed buyer persona"
+  default_prompt: "Use $generate-persona to create one detailed buyer persona from my product and market context."
