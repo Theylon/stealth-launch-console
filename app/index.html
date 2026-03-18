@@ -1,0 +1,1594 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Stealth Launch Console App</title>
+    <meta
+      name="description"
+      content="Run a five-step stealth launch workflow and export a PR document."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Manrope:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --paper: #f5efe3;
+        --paper-strong: #fffaf2;
+        --ink: #17141b;
+        --ink-soft: rgba(23, 20, 27, 0.68);
+        --line: rgba(23, 20, 27, 0.12);
+        --line-strong: rgba(23, 20, 27, 0.22);
+        --accent: #cb5b31;
+        --navy: #1c3046;
+        --sage: #5d6b57;
+        --shadow: 0 24px 60px rgba(23, 20, 27, 0.1);
+        color-scheme: light;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        font-family: "Manrope", sans-serif;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at top left, rgba(203, 91, 49, 0.14), transparent 24%),
+          radial-gradient(circle at 88% 8%, rgba(28, 48, 70, 0.1), transparent 22%),
+          linear-gradient(180deg, #efe4d4 0%, #f5efe3 38%, #ede3d4 100%);
+      }
+
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        opacity: 0.32;
+        background-image:
+          linear-gradient(rgba(23, 20, 27, 0.04) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(23, 20, 27, 0.04) 1px, transparent 1px);
+        background-size: 24px 24px;
+        mask-image: radial-gradient(circle at center, black 38%, transparent 88%);
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      button,
+      input,
+      select,
+      textarea {
+        font: inherit;
+      }
+
+      button {
+        cursor: pointer;
+        touch-action: manipulation;
+      }
+
+      .skip-link {
+        position: absolute;
+        left: 16px;
+        top: -48px;
+        z-index: 40;
+        padding: 0.7rem 1rem;
+        border-radius: 12px;
+        background: var(--ink);
+        color: var(--paper);
+      }
+
+      .skip-link:focus-visible {
+        top: 16px;
+      }
+
+      .page {
+        position: relative;
+        z-index: 1;
+      }
+
+      .topbar {
+        position: sticky;
+        top: 0;
+        z-index: 30;
+        backdrop-filter: blur(18px);
+        background: rgba(245, 239, 227, 0.86);
+        border-bottom: 1px solid rgba(23, 20, 27, 0.08);
+      }
+
+      .topbar-inner,
+      .header,
+      .stepper-shell,
+      .app-shell {
+        width: min(1240px, calc(100vw - 32px));
+        margin: 0 auto;
+      }
+
+      .topbar-inner {
+        min-height: 72px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+      }
+
+      .brand {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      .eyebrow,
+      .section-label {
+        font-size: 0.72rem;
+        letter-spacing: 0.24em;
+        text-transform: uppercase;
+        color: var(--ink-soft);
+      }
+
+      .brand-name,
+      h1,
+      h2,
+      h3,
+      h4 {
+        font-family: "Fraunces", serif;
+        letter-spacing: -0.04em;
+      }
+
+      .brand-name {
+        font-size: 1.42rem;
+      }
+
+      .topbar-actions {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+
+      .button,
+      .button-ghost,
+      .step-button {
+        border: 1px solid var(--line);
+        transition: transform 160ms ease, border-color 160ms ease, background 160ms ease, color 160ms ease;
+      }
+
+      .button,
+      .button-ghost {
+        padding: 0.8rem 1.04rem;
+        border-radius: 999px;
+      }
+
+      .button:hover,
+      .button-ghost:hover,
+      .step-button:hover {
+        transform: translateY(-1px);
+        border-color: var(--line-strong);
+      }
+
+      .button {
+        background: var(--ink);
+        color: var(--paper);
+        border-color: var(--ink);
+      }
+
+      .button-ghost {
+        background: rgba(255, 255, 255, 0.56);
+      }
+
+      :focus-visible {
+        outline: 2px solid rgba(203, 91, 49, 0.6);
+        outline-offset: 2px;
+      }
+
+      .header {
+        padding: 30px 0 18px;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 300px;
+        gap: 18px;
+        align-items: end;
+      }
+
+      .header-copy,
+      .header-meta,
+      .panel,
+      .preview-card {
+        border-radius: 28px;
+        border: 1px solid rgba(23, 20, 27, 0.1);
+        background: rgba(255, 251, 244, 0.82);
+        box-shadow: var(--shadow);
+      }
+
+      .header-copy {
+        padding: 26px 28px;
+      }
+
+      .header-meta {
+        padding: 22px;
+      }
+
+      h1 {
+        margin: 14px 0 0;
+        font-size: clamp(2.3rem, 5vw, 3.6rem);
+        line-height: 0.96;
+        max-width: 13ch;
+        text-wrap: balance;
+      }
+
+      .accent {
+        color: var(--accent);
+      }
+
+      .header-copy p,
+      .header-meta p,
+      .helper-copy,
+      .preview-text,
+      .field small,
+      .status-line {
+        color: var(--ink-soft);
+        line-height: 1.66;
+      }
+
+      .header-actions {
+        margin-top: 20px;
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+
+      .meta-grid {
+        display: grid;
+        gap: 14px;
+      }
+
+      .meta-row strong {
+        display: block;
+        font-size: 1.7rem;
+        color: var(--navy);
+        font-family: "Fraunces", serif;
+      }
+
+      .stepper-shell {
+        padding: 6px 0 18px;
+      }
+
+      .stepper {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(160px, 1fr));
+        gap: 10px;
+        overflow-x: auto;
+        padding-bottom: 2px;
+      }
+
+      .step-button {
+        min-width: 160px;
+        border-radius: 20px;
+        padding: 14px 16px;
+        text-align: left;
+        background: rgba(255, 255, 255, 0.56);
+      }
+
+      .step-button.is-active {
+        background: linear-gradient(135deg, rgba(203, 91, 49, 0.14), rgba(28, 48, 70, 0.08));
+        border-color: rgba(23, 20, 27, 0.2);
+      }
+
+      .step-button.is-complete {
+        background: linear-gradient(135deg, rgba(93, 107, 87, 0.14), rgba(255, 255, 255, 0.68));
+      }
+
+      .step-top {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        align-items: start;
+      }
+
+      .step-index {
+        width: 28px;
+        height: 28px;
+        border-radius: 999px;
+        display: grid;
+        place-items: center;
+        font-size: 0.88rem;
+        font-weight: 700;
+        background: rgba(28, 48, 70, 0.1);
+        color: var(--navy);
+      }
+
+      .step-title {
+        margin-top: 10px;
+        font-weight: 700;
+        font-size: 0.95rem;
+      }
+
+      .step-meta {
+        margin-top: 4px;
+        font-size: 0.84rem;
+        color: var(--ink-soft);
+      }
+
+      .app-shell {
+        padding: 0 0 42px;
+        display: grid;
+        grid-template-columns: minmax(0, 0.94fr) minmax(360px, 0.86fr);
+        gap: 18px;
+        align-items: start;
+      }
+
+      .panel {
+        padding: 24px;
+      }
+
+      .panel-header {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 16px;
+        align-items: start;
+      }
+
+      h2 {
+        margin: 10px 0 0;
+        font-size: 2rem;
+        line-height: 1.02;
+      }
+
+      .skill-chip {
+        padding: 0.52rem 0.78rem;
+        border-radius: 999px;
+        background: rgba(203, 91, 49, 0.12);
+        border: 1px solid rgba(203, 91, 49, 0.18);
+        color: var(--accent);
+        white-space: nowrap;
+      }
+
+      .field-grid {
+        margin-top: 20px;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+      }
+
+      .field {
+        display: grid;
+        gap: 8px;
+        min-width: 0;
+      }
+
+      .field.full {
+        grid-column: 1 / -1;
+      }
+
+      .field label {
+        font-size: 0.92rem;
+        font-weight: 700;
+      }
+
+      .field input,
+      .field select,
+      .field textarea {
+        width: 100%;
+        border-radius: 16px;
+        border: 1px solid rgba(23, 20, 27, 0.14);
+        background: rgba(255, 255, 255, 0.86);
+        padding: 12px 14px;
+        color: var(--ink);
+      }
+
+      .field textarea {
+        min-height: 108px;
+        resize: vertical;
+      }
+
+      .field input:focus-visible,
+      .field select:focus-visible,
+      .field textarea:focus-visible {
+        outline: 0;
+        border-color: rgba(28, 48, 70, 0.34);
+        box-shadow: 0 0 0 4px rgba(28, 48, 70, 0.1);
+      }
+
+      .outputs {
+        margin-top: 20px;
+        border-radius: 20px;
+        border: 1px solid var(--line);
+        background: rgba(246, 241, 232, 0.94);
+        padding: 16px;
+      }
+
+      .outputs ul {
+        margin: 12px 0 0;
+        padding-left: 18px;
+      }
+
+      .actions {
+        margin-top: 22px;
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        align-items: center;
+      }
+
+      .action-row {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+
+      .preview-shell {
+        position: sticky;
+        top: 92px;
+        display: grid;
+        gap: 14px;
+      }
+
+      .preview-card {
+        padding: 18px;
+      }
+
+      h3 {
+        font-size: 1.28rem;
+      }
+
+      .preview-heading {
+        margin-top: 10px;
+        font-size: 1.9rem;
+        line-height: 1.02;
+      }
+
+      .mini-grid {
+        margin-top: 12px;
+        display: grid;
+        gap: 10px;
+      }
+
+      .mini-card {
+        padding: 13px;
+        border-radius: 16px;
+        border: 1px solid rgba(23, 20, 27, 0.08);
+        background: rgba(246, 241, 232, 0.92);
+        min-width: 0;
+      }
+
+      .mini-card strong {
+        display: block;
+        margin-bottom: 4px;
+      }
+
+      .preview-text,
+      .mini-card,
+      .field small {
+        overflow-wrap: anywhere;
+      }
+
+      .status-line {
+        font-size: 0.9rem;
+      }
+
+      .button-stack {
+        margin-top: 4px;
+        display: grid;
+        gap: 10px;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        html {
+          scroll-behavior: auto;
+        }
+
+        *,
+        *::before,
+        *::after {
+          animation: none !important;
+          transition: none !important;
+        }
+      }
+
+      @media (max-width: 1080px) {
+        .header,
+        .app-shell {
+          grid-template-columns: 1fr;
+        }
+
+        .preview-shell {
+          position: static;
+        }
+      }
+
+      @media (max-width: 720px) {
+        .topbar-inner {
+          padding: 14px 0;
+          flex-direction: column;
+          align-items: flex-start;
+        }
+
+        .topbar-actions,
+        .header-actions {
+          width: 100%;
+        }
+
+        .topbar-actions a,
+        .header-actions a,
+        .action-row button,
+        .actions > button {
+          flex: 1 1 180px;
+          text-align: center;
+        }
+
+        .field-grid,
+        .panel-header,
+        .actions {
+          grid-template-columns: 1fr;
+          display: grid;
+        }
+
+        .actions {
+          justify-content: stretch;
+        }
+
+        .action-row {
+          display: grid;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">Skip to main content</a>
+
+    <div class="page">
+      <header class="topbar">
+        <div class="topbar-inner">
+          <div class="brand">
+            <span class="eyebrow">Separate App Surface</span>
+            <span class="brand-name">Stealth Launch Console</span>
+          </div>
+
+          <div class="topbar-actions">
+            <a class="button-ghost" href="../">Back to Site</a>
+            <a class="button-ghost" href="../README.md">Repo Notes</a>
+          </div>
+        </div>
+      </header>
+
+      <main id="main-content">
+        <section class="header">
+          <div class="header-copy">
+            <div class="section-label">Five-step workflow</div>
+            <h1>Build the <span class="accent">launch narrative</span> first. Export the PR document second.</h1>
+            <p>
+              This page is the product surface. It asks for the minimum strategic inputs needed to generate a usable
+              coming-out-of-stealth press release package.
+            </p>
+            <div class="header-actions">
+              <a class="button" href="#workflow">Start with market context</a>
+            </div>
+          </div>
+
+          <aside class="header-meta">
+            <div class="section-label">Session snapshot</div>
+            <div class="meta-grid">
+              <div class="meta-row">
+                <strong id="progress-percent">0%</strong>
+                <div class="helper-copy">workflow completed</div>
+              </div>
+              <div class="meta-row">
+                <strong id="time-remaining">25 min</strong>
+                <div class="helper-copy">estimated time left</div>
+              </div>
+            </div>
+          </aside>
+        </section>
+
+        <section class="stepper-shell" id="workflow" aria-label="Workflow steps">
+          <div class="stepper" id="stepper"></div>
+        </section>
+
+        <section class="app-shell">
+          <section class="panel">
+            <div class="panel-header">
+              <div>
+                <div class="section-label" id="step-counter">Step 1 of 5</div>
+                <h2 id="step-title">Capture Market Context</h2>
+                <p class="helper-copy" id="step-description"></p>
+              </div>
+              <div class="skill-chip" id="skill-chip">$capture-market-context</div>
+            </div>
+
+            <form id="step-form" novalidate></form>
+
+            <div class="outputs">
+              <div class="section-label">This step produces</div>
+              <ul id="step-outputs"></ul>
+            </div>
+
+            <div class="actions">
+              <button class="button-ghost" id="back-button" type="button">Back</button>
+              <div class="action-row">
+                <button class="button-ghost" id="save-button" type="button">Save Locally</button>
+                <button class="button" id="next-button" type="button">Next Step</button>
+              </div>
+            </div>
+          </section>
+
+          <aside class="preview-shell">
+            <div class="preview-card">
+              <div class="section-label">Live document</div>
+              <div class="preview-heading" id="preview-company">Coming out of stealth PR document</div>
+              <p class="preview-text">The preview updates as the workflow gets sharper.</p>
+            </div>
+
+            <div class="preview-card">
+              <div class="section-label">Market Context Brief</div>
+              <p class="preview-text" id="preview-context"></p>
+            </div>
+
+            <div class="preview-card">
+              <div class="section-label">ICP Decision</div>
+              <p class="preview-text" id="preview-icp"></p>
+              <div class="mini-grid" id="preview-wedge"></div>
+            </div>
+
+            <div class="preview-card">
+              <div class="section-label">Positioning Core</div>
+              <p class="preview-text" id="preview-positioning"></p>
+              <p class="preview-text" id="preview-boundary"></p>
+            </div>
+
+            <div class="preview-card">
+              <div class="section-label">Value Proposition</div>
+              <p class="preview-text" id="preview-value"></p>
+              <div class="mini-grid" id="preview-proof"></div>
+            </div>
+
+            <div class="preview-card">
+              <div class="section-label">Press Release Snapshot</div>
+              <h3 id="preview-headline"></h3>
+              <p class="preview-text" id="preview-deck"></p>
+              <p class="preview-text" id="preview-lede"></p>
+              <p class="preview-text" id="preview-quote"></p>
+            </div>
+
+            <div class="preview-card">
+              <div class="section-label">Launch Messages</div>
+              <div class="mini-grid" id="preview-messages"></div>
+            </div>
+
+            <div class="preview-card">
+              <div class="section-label">Distribution Strategy</div>
+              <div class="mini-grid" id="preview-distribution"></div>
+            </div>
+
+            <div class="preview-card">
+              <div class="section-label">Export</div>
+              <div class="button-stack">
+                <button class="button" id="copy-document" type="button">Copy PR Document</button>
+                <button class="button-ghost" id="download-document" type="button">Download Markdown</button>
+              </div>
+              <p class="status-line" id="copy-status" aria-live="polite">Local session is saved automatically in this browser.</p>
+            </div>
+          </aside>
+        </section>
+      </main>
+    </div>
+
+    <script>
+      const STORAGE_KEY = "stealth-launch-console-state-v2";
+
+      const steps = [
+        {
+          id: "market-context",
+          skill: "$capture-market-context",
+          title: "Capture Market Context",
+          minutes: 5,
+          description:
+            "Normalize the company, product, and announcement story before trying to write launch copy.",
+          outputs: [
+            "Market context brief",
+            "Known unknowns that still weaken the launch story",
+            "A reusable product summary for downstream work",
+          ],
+          fields: [
+            { name: "companyName", label: "Company name", type: "text", placeholder: "Relay Harbour…" },
+            { name: "productName", label: "Product name", type: "text", placeholder: "Relay Harbour OS…" },
+            { name: "model", label: "Business model", type: "select", options: ["B2B", "B2C"] },
+            { name: "marketCategory", label: "Market category", type: "text", placeholder: "AI operations command platform…" },
+            {
+              name: "companyStage",
+              label: "Current company stage",
+              type: "select",
+              options: ["Beta with design partners", "Early customers", "Public launch", "Repositioning"],
+            },
+            {
+              name: "productSummary",
+              label: "Product summary",
+              type: "textarea",
+              placeholder: "A control layer that helps operations teams route work, context, and accountability before incidents turn into expensive coordination failures…",
+              full: true,
+            },
+            {
+              name: "announcementReason",
+              label: "Why come out of stealth now?",
+              type: "textarea",
+              placeholder: "The company has early customer proof, a sharper product story, and enough signal to make a credible public claim…",
+              full: true,
+            },
+          ],
+        },
+        {
+          id: "icp",
+          skill: "$choose-ideal-customer",
+          title: "Choose Ideal Customer",
+          minutes: 5,
+          description:
+            "Pick the first segment worth winning instead of trying to write a launch story for everyone.",
+          outputs: [
+            "Primary ICP decision",
+            "Trigger moment and reachable wedge",
+            "Segments to deprioritize in launch messaging",
+          ],
+          fields: [
+            { name: "primaryICP", label: "Primary ICP", type: "text", placeholder: "Operations leaders at high-growth SaaS companies…" },
+            { name: "buyerRole", label: "Primary buyer role", type: "text", placeholder: "VP of Operations…" },
+            { name: "painMoment", label: "Pain moment", type: "text", placeholder: "Critical workflows stall because ownership is fragmented across Slack, tickets, and ad hoc runbooks…" },
+            { name: "triggerEvent", label: "Buying trigger", type: "text", placeholder: "A visible outage or escalation exposes how slow the handoff process has become…" },
+            { name: "currentAlternative", label: "Current alternative", type: "text", placeholder: "Manual runbooks, Slack threads, and stitched-together point tools…" },
+            {
+              name: "reachWedge",
+              label: "Fastest path to credibility",
+              type: "textarea",
+              placeholder: "Start with teams that already feel this pain weekly and can validate improvement through operating metrics…",
+              full: true,
+            },
+          ],
+        },
+        {
+          id: "positioning",
+          skill: "$position-product",
+          title: "Position Product",
+          minutes: 5,
+          description:
+            "Define the market frame, the real alternative, and what makes the product materially different.",
+          outputs: [
+            "Positioning core and internal positioning statement",
+            "Message boundaries for the launch",
+            "Explicit disqualification criteria",
+          ],
+          fields: [
+            { name: "categoryFrame", label: "Category frame", type: "text", placeholder: "Operations command layer…" },
+            {
+              name: "differentiatedMechanism",
+              label: "Differentiated mechanism",
+              type: "textarea",
+              placeholder: "Combining live workflow context, action routing, and ownership tracking in one operator-first product…",
+              full: true,
+            },
+            { name: "whyDifferent", label: "Why this beats the alternative", type: "text", placeholder: "Gives teams control without forcing them to replace their existing tool stack…" },
+            { name: "marketTension", label: "Market tension to frame", type: "text", placeholder: "Buyers are stuck between heavyweight suites and fragile DIY workflows…" },
+            { name: "nonFitSegment", label: "Who the product is not for", type: "text", placeholder: "Small teams with low process complexity and little shared operational overhead…" },
+          ],
+        },
+        {
+          id: "value",
+          skill: "$define-value-proposition",
+          title: "Define Value Proposition",
+          minutes: 5,
+          description:
+            "Turn the buyer job, desired outcome, and proof into a launch-ready promise.",
+          outputs: [
+            "Customer progress model",
+            "Recommended value proposition",
+            "Proof requirements for credibility",
+          ],
+          fields: [
+            { name: "customerJob", label: "Customer job to be done", type: "text", placeholder: "Coordinate urgent operational work without losing speed or accountability…" },
+            { name: "desiredOutcome", label: "Desired outcome", type: "text", placeholder: "Resolve issues faster with clear ownership before revenue or trust takes a hit…" },
+            {
+              name: "proof",
+              label: "Current proof",
+              type: "textarea",
+              placeholder: "Early design partners used the product to reduce escalation confusion and tighten response loops within the first month…",
+              full: true,
+            },
+            { name: "proofRequirement", label: "Proof still needed", type: "text", placeholder: "Named customer evidence, time-to-value metrics, and one quantified workflow case study…" },
+            { name: "riskReducer", label: "Risk reducer", type: "text", placeholder: "Integrates with the team’s current systems instead of forcing a workflow reset…" },
+          ],
+        },
+        {
+          id: "press-release",
+          skill: "$create-press-release",
+          title: "Create Press Release",
+          minutes: 5,
+          description:
+            "Package the strategy into a coming-out-of-stealth press release and support materials.",
+          outputs: [
+            "AP-style press release draft",
+            "Quote bank and message set",
+            "Distribution and supporting materials plan",
+          ],
+          fields: [
+            { name: "announcementAngle", label: "Strongest news angle", type: "text", placeholder: "A new command layer for operations teams that have outgrown stitched-together incident tooling…" },
+            {
+              name: "announcementDetail",
+              label: "Announcement detail",
+              type: "textarea",
+              placeholder: "The company is emerging from stealth with early customers and a sharper point of view on the category…",
+              full: true,
+            },
+            { name: "spokespersonName", label: "Spokesperson name", type: "text", placeholder: "Leah Weiss…" },
+            { name: "spokespersonTitle", label: "Spokesperson title", type: "text", placeholder: "Founder and CEO…" },
+            {
+              name: "quoteStyle",
+              label: "Quote style",
+              type: "select",
+              options: ["Grounded and operator-led", "Vision-led but credible", "Category-framing", "Customer-empathy first"],
+            },
+            {
+              name: "launchCTA",
+              label: "Launch CTA",
+              type: "select",
+              options: ["Request a briefing", "Book a demo", "Join the waitlist", "Read the founder note"],
+            },
+            { name: "launchTiming", label: "Launch timing", type: "text", placeholder: "April 2026…" },
+            {
+              name: "mediaAssets",
+              label: "Available media assets",
+              type: "textarea",
+              placeholder: "Founder headshots, product screenshots, workflow diagram, early customer quote, launch note…",
+              full: true,
+            },
+          ],
+        },
+      ];
+
+      const presets = {
+        "Devtools Launch": {
+          companyName: "Relay Harbour",
+          productName: "Relay Harbour OS",
+          model: "B2B",
+          marketCategory: "AI operations command platform",
+          companyStage: "Early customers",
+          productSummary:
+            "A command layer that helps operations teams route work, context, and accountability before incidents turn into expensive coordination failures.",
+          announcementReason:
+            "The company has early customer proof, a sharper positioning angle, and a clearer market wedge than it had during stealth.",
+          primaryICP: "Operations leaders at high-growth SaaS companies",
+          buyerRole: "VP of Operations",
+          painMoment: "Critical workflows stall because ownership is fragmented across Slack, tickets, and ad hoc runbooks.",
+          triggerEvent: "A visible outage or customer escalation exposes how slow the handoff process has become.",
+          currentAlternative: "Manual runbooks, Slack threads, and stitched-together point tools",
+          reachWedge:
+            "Start with operations-heavy SaaS teams already measuring incident cost and carrying too much coordination overhead.",
+          categoryFrame: "Operations command layer",
+          differentiatedMechanism:
+            "Combining live workflow context, action routing, and ownership tracking in one operator-first product.",
+          whyDifferent: "It gives teams control without forcing them to replace their existing tool stack.",
+          marketTension: "Buyers are stuck between heavyweight suites and fragile DIY workflows.",
+          nonFitSegment: "Small teams with low process complexity and little shared operational overhead",
+          customerJob: "Coordinate urgent operational work without losing speed or accountability",
+          desiredOutcome: "Resolve issues faster with clear ownership before revenue or customer trust takes a hit.",
+          proof:
+            "Early design partners used the product to reduce escalation confusion and tighten response loops within the first month.",
+          proofRequirement: "Named customer proof, time-to-value metrics, and one quantified workflow case study.",
+          riskReducer: "It integrates with the team's current systems instead of forcing a workflow reset.",
+          announcementAngle: "A new command layer for operations teams that have outgrown stitched-together incident tooling.",
+          announcementDetail:
+            "Relay Harbour is emerging from stealth with early customers and a product story built around operational clarity instead of dashboard sprawl.",
+          spokespersonName: "Leah Weiss",
+          spokespersonTitle: "Founder and CEO",
+          quoteStyle: "Grounded and operator-led",
+          launchCTA: "Request a briefing",
+          launchTiming: "April 2026",
+          mediaAssets: "Founder headshots, product screenshots, workflow diagram, early customer quote, launch note",
+        },
+        "Security Platform": {
+          companyName: "Northline Trace",
+          productName: "Northline Trace",
+          model: "B2B",
+          marketCategory: "AI-native security operations workspace",
+          companyStage: "Beta with design partners",
+          productSummary:
+            "A workspace that helps security teams move from signal overload to coordinated action during triage and response.",
+          announcementReason:
+            "The company now has design partner feedback, a defined buyer, and a stronger category story around coordination rather than alert volume.",
+          primaryICP: "Security operations teams inside cloud-first mid-market companies",
+          buyerRole: "Head of Security Operations",
+          painMoment: "Analysts spend too much time gathering context before they can act on a serious signal.",
+          triggerEvent: "An escalation reveals that critical response steps still depend on tribal knowledge and manual handoffs.",
+          currentAlternative: "SIEM dashboards, spreadsheets, and analyst-driven stitching across tools",
+          reachWedge:
+            "Win teams with lean SecOps staffing that feel real pressure to speed up triage without hiring a large analyst bench.",
+          categoryFrame: "Security operations workspace",
+          differentiatedMechanism:
+            "Bringing context, recommended actions, and ownership into one AI-native response flow.",
+          whyDifferent: "It centers action and decision quality instead of adding another passive dashboard.",
+          marketTension: "Buyers either buy enormous platforms or keep duct-taping specialized tools together.",
+          nonFitSegment: "Teams that only need log storage and do not run meaningful response workflows",
+          customerJob: "Triage and respond to high-risk security events without wasting analyst hours",
+          desiredOutcome: "Move from signal to coordinated response faster and with less analyst friction.",
+          proof:
+            "Design partners cut time spent collecting context and reported faster handoffs between analysts and responders.",
+          proofRequirement: "Before-and-after triage timing, analyst adoption evidence, and proof that existing tools stay in place.",
+          riskReducer: "It sits on top of existing security tooling rather than replacing the core stack.",
+          announcementAngle: "A new AI-native workspace for security teams tired of context gathering before action.",
+          announcementDetail:
+            "Northline Trace is emerging from stealth with design partners and a product focused on coordinated response, not just alert management.",
+          spokespersonName: "Maya Levin",
+          spokespersonTitle: "Co-founder and CEO",
+          quoteStyle: "Category-framing",
+          launchCTA: "Book a demo",
+          launchTiming: "May 2026",
+          mediaAssets: "Founder photos, product UI shots, analyst workflow diagram, design partner quote",
+        },
+        "Revenue Ops": {
+          companyName: "Parcel Thread",
+          productName: "Parcel Thread",
+          model: "B2B",
+          marketCategory: "Revenue operations workflow platform",
+          companyStage: "Public launch",
+          productSummary:
+            "A workflow platform that helps RevOps teams clean up handoffs, routing rules, and ownership across the revenue engine.",
+          announcementReason:
+            "The product has enough launch-ready proof to position around execution clarity rather than generic RevOps automation.",
+          primaryICP: "Revenue operations leaders at scaling B2B SaaS companies",
+          buyerRole: "VP of Revenue Operations",
+          painMoment: "Handoffs between marketing, SDRs, sales, and success are full of hidden ownership gaps.",
+          triggerEvent: "Pipeline leakage or routing errors start showing up in board-level forecasting.",
+          currentAlternative: "Spreadsheets, CRM workflows, and custom ops playbooks",
+          reachWedge:
+            "Start with teams where RevOps already owns cross-functional process quality and can point to measurable leakage.",
+          categoryFrame: "Revenue operations workflow platform",
+          differentiatedMechanism:
+            "Making routing logic, accountability, and process visibility operational in one shared system.",
+          whyDifferent: "It captures process decisions in a way that standard CRM workflows and docs never do.",
+          marketTension: "Buyers can automate rules, but they still cannot see or manage the real operating model behind them.",
+          nonFitSegment: "Companies without a dedicated RevOps function or meaningful process complexity",
+          customerJob: "Keep revenue handoffs clean and accountable across the funnel",
+          desiredOutcome: "Reduce pipeline leakage and speed up revenue execution without adding operational overhead.",
+          proof:
+            "Early customers used Parcel Thread to tighten routing consistency and reduce time spent debugging handoff failures.",
+          proofRequirement: "Leakage reduction data, time-saved proof, and customer stories tied to measurable funnel improvements.",
+          riskReducer: "It layers onto existing CRM systems and current RevOps processes.",
+          announcementAngle: "A workflow platform built for RevOps teams that need cleaner execution across the revenue engine.",
+          announcementDetail:
+            "Parcel Thread is coming out publicly with a launch story focused on process accountability and operational visibility.",
+          spokespersonName: "Ilan Mor",
+          spokespersonTitle: "Founder",
+          quoteStyle: "Vision-led but credible",
+          launchCTA: "Read the founder note",
+          launchTiming: "June 2026",
+          mediaAssets: "Founder note, product screenshots, process map, customer quote, brand images",
+        },
+      };
+
+      const state = loadState();
+
+      const elements = {
+        progressPercent: document.getElementById("progress-percent"),
+        timeRemaining: document.getElementById("time-remaining"),
+        stepper: document.getElementById("stepper"),
+        stepCounter: document.getElementById("step-counter"),
+        stepTitle: document.getElementById("step-title"),
+        stepDescription: document.getElementById("step-description"),
+        skillChip: document.getElementById("skill-chip"),
+        stepForm: document.getElementById("step-form"),
+        stepOutputs: document.getElementById("step-outputs"),
+        backButton: document.getElementById("back-button"),
+        saveButton: document.getElementById("save-button"),
+        nextButton: document.getElementById("next-button"),
+        previewCompany: document.getElementById("preview-company"),
+        previewContext: document.getElementById("preview-context"),
+        previewIcp: document.getElementById("preview-icp"),
+        previewWedge: document.getElementById("preview-wedge"),
+        previewPositioning: document.getElementById("preview-positioning"),
+        previewBoundary: document.getElementById("preview-boundary"),
+        previewValue: document.getElementById("preview-value"),
+        previewProof: document.getElementById("preview-proof"),
+        previewHeadline: document.getElementById("preview-headline"),
+        previewDeck: document.getElementById("preview-deck"),
+        previewLede: document.getElementById("preview-lede"),
+        previewQuote: document.getElementById("preview-quote"),
+        previewMessages: document.getElementById("preview-messages"),
+        previewDistribution: document.getElementById("preview-distribution"),
+        copyDocument: document.getElementById("copy-document"),
+        downloadDocument: document.getElementById("download-document"),
+        copyStatus: document.getElementById("copy-status"),
+      };
+
+      function loadState() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            return {
+              currentStep: Number.isInteger(parsed.currentStep) ? parsed.currentStep : 0,
+              answers: parsed.answers && typeof parsed.answers === "object" ? parsed.answers : {},
+            };
+          }
+        } catch (error) {
+          console.warn("Could not load saved state", error);
+        }
+
+        return {
+          currentStep: 0,
+          answers: { ...presets["Devtools Launch"] },
+        };
+      }
+
+      function saveState() {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      }
+
+      function clean(value, fallback = "") {
+        return String(value || "").trim() || fallback;
+      }
+
+      function escapeHtml(value) {
+        return String(value)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#39;");
+      }
+
+      function splitItems(value) {
+        return String(value || "")
+          .split(/[\n,]+/)
+          .map((item) => item.trim())
+          .filter(Boolean);
+      }
+
+      function asSentence(value) {
+        const text = clean(value);
+        if (!text) return "";
+        return /[.!?]$/.test(text) ? text : `${text}.`;
+      }
+
+      function shortDate() {
+        return new Intl.DateTimeFormat("en-US", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        }).format(new Date());
+      }
+
+      function firstWords(value, fallback, maxWords = 10) {
+        const words = clean(value, fallback).split(/\s+/).filter(Boolean);
+        return words.slice(0, maxWords).join(" ");
+      }
+
+      function computeCompletedSteps() {
+        return steps.filter((step) => step.fields.every((field) => clean(state.answers[field.name]))).length;
+      }
+
+      function remainingMinutes() {
+        return steps.slice(state.currentStep).reduce((sum, step) => sum + step.minutes, 0);
+      }
+
+      function renderMiniCards(items) {
+        return items
+          .map(
+            (item) => `
+              <div class="mini-card">
+                <strong>${escapeHtml(item.title)}</strong>
+                <div class="preview-text">${escapeHtml(item.body)}</div>
+              </div>
+            `
+          )
+          .join("");
+      }
+
+      function deriveArtifacts(answers) {
+        const companyName = clean(answers.companyName, "Stealth company");
+        const productName = clean(answers.productName, `${companyName} platform`);
+        const model = clean(answers.model, "B2B");
+        const marketCategory = clean(answers.marketCategory, "software category");
+        const companyStage = clean(answers.companyStage, "early customers");
+        const productSummary = asSentence(
+          answers.productSummary ||
+            `${productName} helps teams bring more clarity and accountability to a messy operating problem`
+        );
+        const announcementReason = asSentence(
+          answers.announcementReason ||
+            `${companyName} now has enough product signal and market clarity to explain the launch in public`
+        );
+
+        const primaryICP = clean(answers.primaryICP, "teams with urgent coordination pain");
+        const buyerRole = clean(answers.buyerRole, "team lead");
+        const painMoment = asSentence(
+          answers.painMoment || "Critical work breaks down because ownership is spread across too many systems"
+        );
+        const triggerEvent = asSentence(
+          answers.triggerEvent || "A visible failure forces the team to admit the current system is not holding up"
+        );
+        const currentAlternative = clean(answers.currentAlternative, "manual workarounds and stitched-together tools");
+        const reachWedge = asSentence(
+          answers.reachWedge || "Start with the teams that already feel this pain often enough to justify change"
+        );
+
+        const categoryFrame = clean(answers.categoryFrame || marketCategory, marketCategory);
+        const differentiatedMechanism = asSentence(
+          answers.differentiatedMechanism || "gives teams a clearer way to route action, context, and ownership"
+        );
+        const whyDifferent = asSentence(
+          answers.whyDifferent || `offers a more credible alternative to ${currentAlternative}`
+        );
+        const marketTension = asSentence(
+          answers.marketTension || `buyers are stuck with ${currentAlternative} even after outgrowing it`
+        );
+        const nonFitSegment = clean(
+          answers.nonFitSegment,
+          "broad low-complexity teams without a pressing workflow problem"
+        );
+
+        const customerJob = clean(
+          answers.customerJob,
+          "coordinate important work without losing speed or accountability"
+        );
+        const desiredOutcome = asSentence(
+          answers.desiredOutcome || "move faster with clearer ownership and less coordination drag"
+        );
+        const proof = asSentence(
+          answers.proof || "The company has early usage evidence but still needs sharper public proof for the launch"
+        );
+        const proofRequirement = asSentence(
+          answers.proofRequirement || "Named customer evidence and measurable outcomes will strengthen the external claim"
+        );
+        const riskReducer = asSentence(
+          answers.riskReducer || "The product can fit into existing workflows instead of forcing a full reset"
+        );
+
+        const announcementAngle = asSentence(
+          answers.announcementAngle ||
+            `${companyName} is emerging from stealth with a stronger answer to a real operational pain point`
+        );
+        const announcementDetail = asSentence(
+          answers.announcementDetail ||
+            `${companyName} is using the launch to explain why the old category framing misses the real buying problem`
+        );
+        const spokespersonName = clean(answers.spokespersonName, "Founder");
+        const spokespersonTitle = clean(answers.spokespersonTitle, "Founder and CEO");
+        const quoteStyle = clean(answers.quoteStyle, "Grounded and operator-led");
+        const launchCTA = clean(answers.launchCTA, "Request a briefing");
+        const launchTiming = clean(answers.launchTiming, shortDate());
+        const mediaAssets = splitItems(answers.mediaAssets);
+
+        const positioningStatement = `For ${primaryICP} who need to ${customerJob}, ${productName} is the ${categoryFrame} that ${clean(
+          differentiatedMechanism
+        ).replace(/[.]+$/, "")}. Unlike ${currentAlternative}, it ${clean(whyDifferent).replace(/[.]+$/, "")}.`;
+
+        const recommendedValue = `${productName} helps ${primaryICP} ${clean(desiredOutcome).replace(
+          /[.]+$/,
+          ""
+        )} while keeping adoption credible because it ${clean(riskReducer).replace(/[.]+$/, "").replace(/^it /i, "")}.`;
+
+        const contextBrief = `${companyName} is a ${model} company in ${marketCategory}. ${productSummary} ${announcementReason} The current stage is ${companyStage.toLowerCase()}.`;
+        const icpDecision = `Primary ICP: ${primaryICP}. Primary buyer: ${buyerRole}. The launch should speak to teams when ${clean(
+          painMoment
+        ).replace(/[.]+$/, "")}, especially after ${clean(triggerEvent).replace(/[.]+$/, "")}.`;
+
+        const newsAngle = `${companyName} is coming out of stealth with a product positioned around ${firstWords(
+          announcementAngle,
+          "a sharper market angle",
+          14
+        )}.`;
+
+        const headlineOptions = [
+          `${companyName} Emerges from Stealth with ${productName} for ${firstWords(primaryICP, primaryICP, 8)}`,
+          `${companyName} Launches ${productName}, a ${categoryFrame} for ${firstWords(primaryICP, primaryICP, 8)}`,
+          `${companyName} Comes Out of Stealth to Replace ${firstWords(currentAlternative, currentAlternative, 7)}`,
+        ];
+
+        const deck = `${productName} is positioned as a ${categoryFrame} for ${primaryICP}, promising that teams can ${clean(
+          desiredOutcome
+        ).replace(/[.]+$/, "")} instead of relying on ${currentAlternative}.`;
+
+        const lead = `${launchTiming} - ${companyName} today emerged from stealth and introduced ${productName}, a ${categoryFrame} built for ${primaryICP}. The company says the product helps buyers ${clean(
+          desiredOutcome
+        ).replace(/[.]+$/, "")} by ${clean(differentiatedMechanism).replace(/[.]+$/, "")}, giving teams an alternative to ${currentAlternative}.`;
+
+        const bodyParagraphs = [
+          announcementDetail,
+          `${companyName} is targeting ${buyerRole} and adjacent teams that usually start evaluating change after ${clean(
+            triggerEvent
+          ).replace(/[.]+$/, "")}. ${marketTension}`,
+          `${proof} ${riskReducer}`,
+        ];
+
+        const quoteTemplates = {
+          "Grounded and operator-led": `"${clean(painMoment).replace(
+            /^[A-Z]/,
+            (char) => char.toLowerCase()
+          )} is still being handled through ${currentAlternative}, and that creates avoidable drag when the stakes are highest," said ${spokespersonName}, ${spokespersonTitle} at ${companyName}. "${productName} gives teams a clearer operating layer so they can ${clean(
+            desiredOutcome
+          ).replace(/[.]+$/, "")} without rebuilding everything around them."`,
+          "Vision-led but credible": `"The next generation of operator software should make accountable action easier, not bury teams in more surfaces to manage," said ${spokespersonName}, ${spokespersonTitle} at ${companyName}. "${productName} is our answer for teams that need to ${clean(
+            desiredOutcome
+          ).replace(/[.]+$/, "")} while keeping the real workflow visible."`,
+          "Category-framing": `"Most teams do not need another system that watches the problem. They need a system that helps them move through it with control," said ${spokespersonName}, ${spokespersonTitle} at ${companyName}. "We built ${productName} as a ${categoryFrame} because that is the gap buyers keep feeling in the market."`,
+          "Customer-empathy first": `"When ${clean(painMoment).replace(/[.]+$/, "")}, the team does not experience it as a tooling issue. They experience it as lost clarity and rising risk," said ${spokespersonName}, ${spokespersonTitle} at ${companyName}. "${productName} helps them regain control quickly and in a way they can actually adopt."`,
+        };
+
+        const mainQuote = quoteTemplates[quoteStyle] || quoteTemplates["Grounded and operator-led"];
+
+        const quoteBank = [
+          mainQuote,
+          `"We are not asking buyers to rip out the systems they already depend on," said ${spokespersonName}. "${productName} fits into the current environment and makes the core job easier."`,
+        ];
+
+        const keyMessages = [
+          `${productName} is built for ${primaryICP}, not for every possible segment.`,
+          `The product is differentiated by ${clean(differentiatedMechanism).replace(/[.]+$/, "")}.`,
+          `The buyer promise is ${clean(desiredOutcome).replace(/[.]+$/, "")}, backed by ${clean(proof).replace(/[.]+$/, "")}.`,
+        ];
+
+        const seoKeywords = [
+          productName,
+          categoryFrame,
+          firstWords(primaryICP, primaryICP, 6),
+          firstWords(customerJob, customerJob, 6),
+        ];
+
+        const assetList =
+          mediaAssets.length > 0
+            ? mediaAssets
+            : ["Founder headshot", "Product screenshots", "Workflow graphic", "Launch note"];
+
+        const distributionStrategy = [
+          `Send a direct founder briefing to reporters and newsletter writers covering ${categoryFrame}.`,
+          `Publish the release plus a founder note that expands on ${clean(announcementAngle).replace(/[.]+$/, "")}.`,
+          `Arm investors, advisors, and early customers with three short key messages and the primary CTA: ${launchCTA}.`,
+        ];
+
+        const supportingMaterials = [
+          "Founder Q&A sheet",
+          "Product screenshot pack with captions",
+          "Short customer-proof one-pager",
+          "Launch-day FAQ for prospects and partners",
+        ];
+
+        const announcementVariations = [
+          `LinkedIn opener: ${companyName} is coming out of stealth with a clearer way for ${primaryICP} to ${clean(
+            desiredOutcome
+          ).replace(/[.]+$/, "")}.`,
+          `Email subject: ${companyName} emerges from stealth with ${productName}`,
+          `Internal sales note: Lead with the shift away from ${currentAlternative} and toward ${categoryFrame}.`,
+        ];
+
+        const markdown = [
+          `# ${companyName} Coming Out of Stealth PR Document`,
+          ``,
+          `Generated on ${shortDate()}.`,
+          ``,
+          `## Workflow`,
+          `- $capture-market-context`,
+          `- $choose-ideal-customer`,
+          `- $position-product`,
+          `- $define-value-proposition`,
+          `- $create-press-release`,
+          ``,
+          `## Market Context Brief`,
+          `- Company and product: ${companyName} / ${productName}`,
+          `- Category: ${marketCategory}`,
+          `- Business model: ${model}`,
+          `- Stage: ${companyStage}`,
+          `- Summary: ${clean(productSummary)}`,
+          `- Why now: ${clean(announcementReason)}`,
+          ``,
+          `## ICP Decision`,
+          `- Recommended primary ICP: ${primaryICP}`,
+          `- Primary buyer: ${buyerRole}`,
+          `- Pain moment: ${clean(painMoment)}`,
+          `- Buying trigger: ${clean(triggerEvent)}`,
+          `- Current alternative: ${currentAlternative}`,
+          `- Fastest path to credibility: ${clean(reachWedge)}`,
+          `- Deprioritize: ${nonFitSegment}`,
+          ``,
+          `## Positioning Core`,
+          `- Category frame: ${categoryFrame}`,
+          `- Differentiated mechanism: ${clean(differentiatedMechanism)}`,
+          `- Why it wins: ${clean(whyDifferent)}`,
+          `- Market tension: ${clean(marketTension)}`,
+          `- Not for: ${nonFitSegment}`,
+          ``,
+          `### Positioning Statement`,
+          positioningStatement,
+          ``,
+          `## Recommended Value Proposition`,
+          `- Customer job: ${customerJob}`,
+          `- Desired outcome: ${clean(desiredOutcome)}`,
+          `- Current proof: ${clean(proof)}`,
+          `- Proof still needed: ${clean(proofRequirement)}`,
+          `- Risk reducer: ${clean(riskReducer)}`,
+          ``,
+          `### Recommended Value Proposition`,
+          recommendedValue,
+          ``,
+          `## Press Release Framework Output`,
+          ``,
+          `### 1. News Angle Assessment`,
+          newsAngle,
+          ``,
+          `### 2. Press Release Structure`,
+          `#### Headline`,
+          headlineOptions[0],
+          ``,
+          `#### Deck`,
+          deck,
+          ``,
+          `#### Lead`,
+          lead,
+          ``,
+          `#### Body`,
+          ...bodyParagraphs,
+          ``,
+          `#### Quote`,
+          mainQuote,
+          ``,
+          `#### CTA`,
+          launchCTA,
+          ``,
+          `### 3. Headline Options`,
+          ...headlineOptions.map((item) => `- ${item}`),
+          ``,
+          `### 4. Quote Bank`,
+          ...quoteBank.map((item) => `- ${item}`),
+          ``,
+          `### 5. Key Messages`,
+          ...keyMessages.map((item) => `- ${item}`),
+          ``,
+          `### 6. SEO Optimization`,
+          `- Keywords: ${seoKeywords.join(", ")}`,
+          `- Meta angle: ${clean(announcementAngle)}`,
+          ``,
+          `### 7. Multimedia Assets`,
+          ...assetList.map((item) => `- ${item}`),
+          ``,
+          `### 8. Distribution Strategy`,
+          ...distributionStrategy.map((item) => `- ${item}`),
+          ``,
+          `### 9. Supporting Materials`,
+          ...supportingMaterials.map((item) => `- ${item}`),
+          ``,
+          `### 10. Announcement Variations`,
+          ...announcementVariations.map((item) => `- ${item}`),
+        ].join("\n");
+
+        return {
+          contextBrief,
+          icpDecision,
+          wedgeCards: [
+            { title: "Trigger", body: clean(triggerEvent) },
+            { title: "Alternative", body: currentAlternative },
+            { title: "Reach wedge", body: clean(reachWedge) },
+          ],
+          positioningStatement,
+          boundary: `Do not optimize the launch for ${nonFitSegment}. Keep the narrative anchored to ${primaryICP}.`,
+          recommendedValue,
+          proofCards: [
+            { title: "Current proof", body: clean(proof) },
+            { title: "Proof still needed", body: clean(proofRequirement) },
+            { title: "Risk reducer", body: clean(riskReducer) },
+          ],
+          headline: headlineOptions[0],
+          deck,
+          lead,
+          quote: mainQuote,
+          keyMessages,
+          distributionStrategy,
+          markdown,
+        };
+      }
+
+      function renderStepper() {
+        const completedSteps = computeCompletedSteps();
+        const progress = Math.round((completedSteps / steps.length) * 100);
+
+        elements.progressPercent.textContent = `${progress}%`;
+        elements.timeRemaining.textContent = `${remainingMinutes()} min`;
+
+        elements.stepper.innerHTML = steps
+          .map((step, index) => {
+            const isComplete = step.fields.every((field) => clean(state.answers[field.name]));
+            const isActive = index === state.currentStep;
+            const classes = ["step-button"];
+            if (isComplete) classes.push("is-complete");
+            if (isActive) classes.push("is-active");
+
+            return `
+              <button class="${classes.join(" ")}" type="button" data-step="${index}">
+                <div class="step-top">
+                  <div class="step-index">${index + 1}</div>
+                  <div class="step-meta">${step.minutes} min</div>
+                </div>
+                <div class="step-title">${escapeHtml(step.title)}</div>
+                <div class="step-meta">${escapeHtml(step.skill)}</div>
+              </button>
+            `;
+          })
+          .join("");
+
+        Array.from(elements.stepper.querySelectorAll("[data-step]")).forEach((button) => {
+          button.addEventListener("click", () => {
+            state.currentStep = Number(button.dataset.step);
+            saveState();
+            render();
+          });
+        });
+      }
+
+      function renderForm() {
+        const step = steps[state.currentStep];
+
+        elements.stepCounter.textContent = `Step ${state.currentStep + 1} of ${steps.length}`;
+        elements.stepTitle.textContent = step.title;
+        elements.stepDescription.textContent = step.description;
+        elements.skillChip.textContent = step.skill;
+        elements.stepOutputs.innerHTML = step.outputs.map((item) => `<li>${escapeHtml(item)}</li>`).join("");
+
+        elements.stepForm.innerHTML = `
+          <div class="field-grid">
+            ${step.fields
+              .map((field) => {
+                const value = clean(state.answers[field.name]);
+                const fieldClass = field.full ? "field full" : "field";
+
+                if (field.type === "select") {
+                  return `
+                    <div class="${fieldClass}">
+                      <label for="${escapeHtml(field.name)}">${escapeHtml(field.label)}</label>
+                      <select id="${escapeHtml(field.name)}" name="${escapeHtml(field.name)}" autocomplete="off">
+                        <option value="">Select an option</option>
+                        ${field.options
+                          .map(
+                            (option) => `
+                              <option value="${escapeHtml(option)}" ${value === option ? "selected" : ""}>${escapeHtml(option)}</option>
+                            `
+                          )
+                          .join("")}
+                      </select>
+                      <small>Keep the answer specific enough to survive in the exported document.</small>
+                    </div>
+                  `;
+                }
+
+                if (field.type === "textarea") {
+                  return `
+                    <div class="${fieldClass}">
+                      <label for="${escapeHtml(field.name)}">${escapeHtml(field.label)}</label>
+                      <textarea id="${escapeHtml(field.name)}" name="${escapeHtml(field.name)}" autocomplete="off" placeholder="${escapeHtml(
+                        field.placeholder
+                      )}">${escapeHtml(value)}</textarea>
+                      <small>Use concise operational language. Avoid category filler.</small>
+                    </div>
+                  `;
+                }
+
+                return `
+                  <div class="${fieldClass}">
+                    <label for="${escapeHtml(field.name)}">${escapeHtml(field.label)}</label>
+                    <input id="${escapeHtml(field.name)}" name="${escapeHtml(field.name)}" type="text" autocomplete="off" value="${escapeHtml(
+                      value
+                    )}" placeholder="${escapeHtml(field.placeholder)}" />
+                    <small>Short beats clever here. The preview should read like a real launch document.</small>
+                  </div>
+                `;
+              })
+              .join("")}
+          </div>
+        `;
+
+        Array.from(elements.stepForm.querySelectorAll("input, textarea, select")).forEach((field) => {
+          field.addEventListener("input", (event) => {
+            state.answers[event.target.name] = event.target.value;
+            saveState();
+            renderPreview();
+            renderStepper();
+          });
+
+          field.addEventListener("change", (event) => {
+            state.answers[event.target.name] = event.target.value;
+            saveState();
+            renderPreview();
+            renderStepper();
+          });
+        });
+
+        elements.backButton.disabled = state.currentStep === 0;
+        elements.nextButton.textContent = state.currentStep === steps.length - 1 ? "Review Document" : "Next Step";
+      }
+
+      function renderPreview() {
+        const artifacts = deriveArtifacts(state.answers);
+
+        elements.previewCompany.textContent = `${clean(state.answers.companyName, "Your company")} PR document`;
+        elements.previewContext.textContent = artifacts.contextBrief;
+        elements.previewIcp.textContent = artifacts.icpDecision;
+        elements.previewWedge.innerHTML = renderMiniCards(artifacts.wedgeCards);
+        elements.previewPositioning.textContent = artifacts.positioningStatement;
+        elements.previewBoundary.textContent = artifacts.boundary;
+        elements.previewValue.textContent = artifacts.recommendedValue;
+        elements.previewProof.innerHTML = renderMiniCards(artifacts.proofCards);
+        elements.previewHeadline.textContent = artifacts.headline;
+        elements.previewDeck.textContent = artifacts.deck;
+        elements.previewLede.textContent = artifacts.lead;
+        elements.previewQuote.textContent = artifacts.quote;
+        elements.previewMessages.innerHTML = renderMiniCards(
+          artifacts.keyMessages.map((message, index) => ({
+            title: `Message ${index + 1}`,
+            body: message,
+          }))
+        );
+        elements.previewDistribution.innerHTML = renderMiniCards(
+          artifacts.distributionStrategy.map((message, index) => ({
+            title: `Move ${index + 1}`,
+            body: message,
+          }))
+        );
+
+        elements.copyDocument.onclick = async () => {
+          try {
+            await navigator.clipboard.writeText(artifacts.markdown);
+            elements.copyStatus.textContent = "PR document copied to clipboard.";
+          } catch (error) {
+            console.error(error);
+            elements.copyStatus.textContent = "Clipboard copy failed. Use the download button instead.";
+          }
+        };
+
+        elements.downloadDocument.onclick = () => {
+          const filename = `${clean(state.answers.companyName, "stealth-launch")
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, "-")}-pr-document.md`;
+          const blob = new Blob([artifacts.markdown], { type: "text/markdown;charset=utf-8" });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement("a");
+          link.href = url;
+          link.download = filename;
+          document.body.appendChild(link);
+          link.click();
+          link.remove();
+          URL.revokeObjectURL(url);
+          elements.copyStatus.textContent = `Downloaded ${filename}.`;
+        };
+      }
+
+      elements.backButton.addEventListener("click", () => {
+        if (state.currentStep > 0) {
+          state.currentStep -= 1;
+          saveState();
+          render();
+        }
+      });
+
+      elements.saveButton.addEventListener("click", () => {
+        saveState();
+        elements.copyStatus.textContent = "Session saved locally in this browser.";
+      });
+
+      elements.nextButton.addEventListener("click", () => {
+        state.currentStep = Math.min(state.currentStep + 1, steps.length - 1);
+        saveState();
+        render();
+      });
+
+      function render() {
+        renderStepper();
+        renderForm();
+        renderPreview();
+      }
+
+      render();
+    </script>
+  </body>
+</html>

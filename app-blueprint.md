@@ -42,11 +42,16 @@ This is the tightest path from raw company input to a usable launch artifact.
 
 ## UX Shape
 
-The app is a workshop console with three rails:
+The product now has two separate surfaces:
 
-- left rail: workflow progress and stage navigation
-- center rail: guided questions for the active skill
-- right rail: live artifact preview
+- a concise landing page at [index.html](/Users/eylon/Claude/marketing/index.html)
+- the actual workflow at [app/index.html](/Users/eylon/Claude/marketing/app/index.html)
+
+The app itself is a compact two-panel console:
+
+- top stepper for workflow progress
+- left panel for guided questions
+- right panel for the live artifact preview
 
 The preview should not feel like a generic summary panel. It should feel like the document the user is building.
 

@@ -13,7 +13,12 @@ This repository is a local marketing skill library plus a static MVP product sur
 
 ## Current MVP
 
-The root app is `Stealth Launch Console`, a static workflow that runs through:
+The repository now has two user-facing surfaces:
+
+- [index.html](/Users/eylon/Claude/marketing/index.html): concise landing page
+- [app/index.html](/Users/eylon/Claude/marketing/app/index.html): the actual workflow app
+
+The app runs through:
 
 1. `$capture-market-context`
 2. `$choose-ideal-customer`
