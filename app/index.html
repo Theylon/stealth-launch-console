@@ -251,6 +251,12 @@
         gap: 14px;
       }
 
+      .settings-card {
+        margin-top: 6px;
+        padding-top: 14px;
+        border-top: 1px solid rgba(23, 20, 27, 0.08);
+      }
+
       .meta-row strong {
         display: block;
         font-size: 1.7rem;
@@ -390,6 +396,10 @@
         resize: vertical;
       }
 
+      .field input[type="password"] {
+        letter-spacing: 0.04em;
+      }
+
       .field input:focus-visible,
       .field select:focus-visible,
       .field textarea:focus-visible {
@@ -404,6 +414,42 @@
         border: 1px solid var(--line);
         background: rgba(246, 241, 232, 0.94);
         padding: 16px;
+      }
+
+      .llm-section {
+        margin-top: 18px;
+        border-radius: 20px;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.66);
+        padding: 16px;
+      }
+
+      .run-button-row {
+        margin-top: 12px;
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .llm-output {
+        margin-top: 12px;
+        padding: 14px;
+        border-radius: 16px;
+        background: rgba(246, 241, 232, 0.92);
+        border: 1px solid rgba(23, 20, 27, 0.08);
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+        line-height: 1.66;
+        color: var(--ink);
+        min-height: 96px;
+        max-height: 420px;
+        overflow: auto;
+      }
+
+      .run-status {
+        margin-top: 10px;
+        font-size: 0.9rem;
+        color: var(--ink-soft);
       }
 
       .outputs ul {
@@ -585,6 +631,23 @@
                 <strong id="time-remaining">25 min</strong>
                 <div class="helper-copy">estimated time left</div>
               </div>
+              <div class="settings-card">
+                <div class="section-label">OpenAI Runtime</div>
+                <div class="field">
+                  <label for="api-key">API key</label>
+                  <input id="api-key" name="api-key" type="password" autocomplete="off" spellcheck="false" placeholder="sk-…" />
+                  <small>Stored only in this browser. Do not use a shared production key on a public machine.</small>
+                </div>
+                <div class="field">
+                  <label for="model-name">Model</label>
+                  <input id="model-name" name="model-name" type="text" autocomplete="off" spellcheck="false" placeholder="gpt-4.1-mini" />
+                  <small>`gpt-4.1-mini` is the default fast model for this MVP.</small>
+                </div>
+                <div class="run-button-row">
+                  <button class="button-ghost" id="save-settings" type="button">Save Settings</button>
+                  <button class="button-ghost" id="clear-key" type="button">Clear Key</button>
+                </div>
+              </div>
             </div>
           </aside>
         </section>
@@ -609,6 +672,16 @@
             <div class="outputs">
               <div class="section-label">This step produces</div>
               <ul id="step-outputs"></ul>
+            </div>
+
+            <div class="llm-section">
+              <div class="section-label">Model Output</div>
+              <div class="run-button-row">
+                <button class="button" id="run-stage-button" type="button">Run This Stage</button>
+                <button class="button-ghost" id="run-all-button" type="button">Run All Stages</button>
+              </div>
+              <div class="run-status" id="run-status" aria-live="polite">No stage output yet.</div>
+              <div class="llm-output" id="llm-output">Run a stage to generate an actual deliverable.</div>
             </div>
 
             <div class="actions">
@@ -682,7 +755,7 @@
     </div>
 
     <script>
-      const STORAGE_KEY = "stealth-launch-console-state-v2";
+      const STORAGE_KEY = "stealth-launch-console-state-v3";
 
       const steps = [
         {
@@ -982,6 +1055,14 @@
         skillChip: document.getElementById("skill-chip"),
         stepForm: document.getElementById("step-form"),
         stepOutputs: document.getElementById("step-outputs"),
+        apiKey: document.getElementById("api-key"),
+        modelName: document.getElementById("model-name"),
+        saveSettings: document.getElementById("save-settings"),
+        clearKey: document.getElementById("clear-key"),
+        runStageButton: document.getElementById("run-stage-button"),
+        runAllButton: document.getElementById("run-all-button"),
+        runStatus: document.getElementById("run-status"),
+        llmOutput: document.getElementById("llm-output"),
         backButton: document.getElementById("back-button"),
         saveButton: document.getElementById("save-button"),
         nextButton: document.getElementById("next-button"),
@@ -1012,6 +1093,10 @@
             return {
               currentStep: Number.isInteger(parsed.currentStep) ? parsed.currentStep : 0,
               answers: parsed.answers && typeof parsed.answers === "object" ? parsed.answers : {},
+              settings: parsed.settings && typeof parsed.settings === "object"
+                ? parsed.settings
+                : { apiKey: "", model: "gpt-4.1-mini" },
+              stageResults: parsed.stageResults && typeof parsed.stageResults === "object" ? parsed.stageResults : {},
             };
           }
         } catch (error) {
@@ -1021,6 +1106,8 @@
         return {
           currentStep: 0,
           answers: { ...presets["Devtools Launch"] },
+          settings: { apiKey: "", model: "gpt-4.1-mini" },
+          stageResults: {},
         };
       }
 
@@ -1086,6 +1173,225 @@
             `
           )
           .join("");
+      }
+
+      function getStageContract(stepId) {
+        const contracts = {
+          "market-context": [
+            "## Market Context Brief",
+            "- Company and product",
+            "- Target customer and buyer",
+            "- Core job or problem",
+            "- Current alternatives",
+            "- Value claims and proof",
+            "- Pricing and GTM motion if known",
+            "- Tone and brand constraints",
+            "",
+            "## Known Unknowns",
+            "",
+            "## Rationale",
+            "",
+            "## Suggested Next Skill",
+          ],
+          icp: [
+            "## ICP Decision",
+            "- Recommended primary ICP",
+            "- Secondary segment, if any",
+            "- Segments to deprioritize",
+            "",
+            "## Decision Matrix",
+            "",
+            "## Wedge Definition",
+            "",
+            "## Rationale",
+            "",
+            "## Missing Assumptions",
+            "",
+            "## Suggested Next Skill",
+          ],
+          positioning: [
+            "## Positioning Core",
+            "- Best-fit customer",
+            "- Market/category frame",
+            "- Real alternatives",
+            "- Differentiated value",
+            "",
+            "## Positioning Statement",
+            "",
+            "## Message Boundaries",
+            "- What to emphasize",
+            "- What not to claim",
+            "- Who the product is not for",
+            "",
+            "## Rationale",
+            "",
+            "## Missing Assumptions",
+            "",
+            "## Suggested Next Skill",
+          ],
+          value: [
+            "## Customer Progress Model",
+            "",
+            "## Value Proposition Options",
+            "",
+            "## Recommended Value Proposition",
+            "",
+            "## Proof Requirements",
+            "",
+            "## Rationale",
+            "",
+            "## Missing Assumptions",
+            "",
+            "## Suggested Next Skill",
+          ],
+          "press-release": [
+            "## News Angle Assessment",
+            "",
+            "## Press Release Structure",
+            "- Headline",
+            "- Deck",
+            "- Lead",
+            "- Body",
+            "- Quote",
+            "- CTA",
+            "",
+            "## Headline Options",
+            "",
+            "## Quote Bank",
+            "",
+            "## Key Messages",
+            "",
+            "## SEO Optimization",
+            "",
+            "## Multimedia Assets",
+            "",
+            "## Distribution Strategy",
+            "",
+            "## Supporting Materials",
+            "",
+            "## Announcement Variations",
+          ],
+        };
+
+        return contracts[stepId].join("\n");
+      }
+
+      function buildStagePrompt(stepIndex) {
+        const step = steps[stepIndex];
+        const answerBlock = step.fields
+          .map((field) => `- ${field.label}: ${clean(state.answers[field.name], "Not provided")}`)
+          .join("\n");
+
+        const previousOutputs = steps
+          .slice(0, stepIndex)
+          .map((previousStep) => {
+            const result = state.stageResults[previousStep.id];
+            return `## ${previousStep.title}\n${result ? result.markdown : "Not run yet."}`;
+          })
+          .join("\n\n");
+
+        return [
+          `You are running one marketing skill: ${step.skill}.`,
+          `Produce only the deliverable for this stage.`,
+          `Write concise, senior, operational English.`,
+          `Do not invent proof, customers, pricing, or metrics. If information is missing, state it explicitly under assumptions or unknowns.`,
+          `Return Markdown only. Do not wrap the answer in code fences.`,
+          ``,
+          `Current stage: ${step.title}`,
+          `Current stage inputs:`,
+          answerBlock,
+          ``,
+          `Previous stage outputs:`,
+          previousOutputs || "None.",
+          ``,
+          `Required structure:`,
+          getStageContract(step.id),
+        ].join("\n");
+      }
+
+      function extractResponseText(payload) {
+        if (typeof payload.output_text === "string" && payload.output_text.trim()) {
+          return payload.output_text.trim();
+        }
+
+        const output = Array.isArray(payload.output) ? payload.output : [];
+        const text = output
+          .flatMap((item) => Array.isArray(item.content) ? item.content : [])
+          .filter((item) => item.type === "output_text" && typeof item.text === "string")
+          .map((item) => item.text)
+          .join("\n")
+          .trim();
+
+        if (text) {
+          return text;
+        }
+
+        if (payload.choices?.[0]?.message?.content) {
+          return String(payload.choices[0].message.content).trim();
+        }
+
+        throw new Error("No text output returned by the API.");
+      }
+
+      async function runStage(stepIndex) {
+        const apiKey = clean(state.settings.apiKey);
+        const model = clean(state.settings.model, "gpt-4.1-mini");
+
+        if (!apiKey) {
+          throw new Error("Enter an OpenAI API key first.");
+        }
+
+        const prompt = buildStagePrompt(stepIndex);
+        const response = await fetch("https://api.openai.com/v1/responses", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${apiKey}`,
+          },
+          body: JSON.stringify({
+            model,
+            input: prompt,
+          }),
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`OpenAI API error ${response.status}: ${errorText}`);
+        }
+
+        const payload = await response.json();
+        const markdown = extractResponseText(payload);
+        const step = steps[stepIndex];
+        state.stageResults[step.id] = {
+          markdown,
+          updatedAt: new Date().toISOString(),
+          model,
+        };
+        saveState();
+        return markdown;
+      }
+
+      async function runAllStages() {
+        elements.runStatus.textContent = "Running all stages…";
+        elements.runStageButton.disabled = true;
+        elements.runAllButton.disabled = true;
+
+        try {
+          for (let index = 0; index < steps.length; index += 1) {
+            state.currentStep = index;
+            render();
+            elements.runStatus.textContent = `Running ${steps[index].title}…`;
+            await runStage(index);
+          }
+          elements.runStatus.textContent = "All five stages generated successfully.";
+          render();
+        } catch (error) {
+          elements.runStatus.textContent = error.message;
+          throw error;
+        } finally {
+          elements.runStageButton.disabled = false;
+          elements.runAllButton.disabled = false;
+        }
       }
 
       function deriveArtifacts(answers) {
@@ -1429,12 +1735,22 @@
 
       function renderForm() {
         const step = steps[state.currentStep];
+        const stepResult = state.stageResults[step.id];
 
         elements.stepCounter.textContent = `Step ${state.currentStep + 1} of ${steps.length}`;
         elements.stepTitle.textContent = step.title;
         elements.stepDescription.textContent = step.description;
         elements.skillChip.textContent = step.skill;
         elements.stepOutputs.innerHTML = step.outputs.map((item) => `<li>${escapeHtml(item)}</li>`).join("");
+        elements.llmOutput.textContent = stepResult?.markdown || "Run a stage to generate an actual deliverable.";
+        elements.runStatus.textContent = stepResult
+          ? `Generated with ${stepResult.model} on ${new Intl.DateTimeFormat("en-US", {
+              month: "short",
+              day: "numeric",
+              hour: "numeric",
+              minute: "2-digit",
+            }).format(new Date(stepResult.updatedAt))}.`
+          : "No stage output yet.";
 
         elements.stepForm.innerHTML = `
           <div class="field-grid">
@@ -1510,6 +1826,7 @@
 
       function renderPreview() {
         const artifacts = deriveArtifacts(state.answers);
+        const exportMarkdown = buildExportMarkdown(artifacts);
 
         elements.previewCompany.textContent = `${clean(state.answers.companyName, "Your company")} PR document`;
         elements.previewContext.textContent = artifacts.contextBrief;
@@ -1538,7 +1855,7 @@
 
         elements.copyDocument.onclick = async () => {
           try {
-            await navigator.clipboard.writeText(artifacts.markdown);
+            await navigator.clipboard.writeText(exportMarkdown);
             elements.copyStatus.textContent = "PR document copied to clipboard.";
           } catch (error) {
             console.error(error);
@@ -1550,7 +1867,7 @@
           const filename = `${clean(state.answers.companyName, "stealth-launch")
             .toLowerCase()
             .replace(/[^a-z0-9]+/g, "-")}-pr-document.md`;
-          const blob = new Blob([artifacts.markdown], { type: "text/markdown;charset=utf-8" });
+          const blob = new Blob([exportMarkdown], { type: "text/markdown;charset=utf-8" });
           const url = URL.createObjectURL(blob);
           const link = document.createElement("a");
           link.href = url;
@@ -1561,6 +1878,24 @@
           URL.revokeObjectURL(url);
           elements.copyStatus.textContent = `Downloaded ${filename}.`;
         };
+      }
+
+      function buildExportMarkdown(artifacts) {
+        const generatedStages = steps
+          .map((step) => {
+            const result = state.stageResults[step.id];
+            if (!result) {
+              return null;
+            }
+            return `# ${step.title}\n\n${result.markdown}`;
+          })
+          .filter(Boolean);
+
+        if (generatedStages.length > 0) {
+          return generatedStages.join("\n\n---\n\n");
+        }
+
+        return artifacts.markdown;
       }
 
       elements.backButton.addEventListener("click", () => {
@@ -1582,7 +1917,47 @@
         render();
       });
 
+      elements.saveSettings.addEventListener("click", () => {
+        state.settings.apiKey = elements.apiKey.value.trim();
+        state.settings.model = clean(elements.modelName.value, "gpt-4.1-mini");
+        saveState();
+        elements.copyStatus.textContent = "OpenAI runtime settings saved in this browser.";
+      });
+
+      elements.clearKey.addEventListener("click", () => {
+        state.settings.apiKey = "";
+        elements.apiKey.value = "";
+        saveState();
+        elements.copyStatus.textContent = "Stored API key cleared from this browser.";
+      });
+
+      elements.runStageButton.addEventListener("click", async () => {
+        elements.runStageButton.disabled = true;
+        elements.runAllButton.disabled = true;
+        const step = steps[state.currentStep];
+        elements.runStatus.textContent = `Running ${step.title}…`;
+        try {
+          await runStage(state.currentStep);
+          render();
+        } catch (error) {
+          elements.runStatus.textContent = error.message;
+        } finally {
+          elements.runStageButton.disabled = false;
+          elements.runAllButton.disabled = false;
+        }
+      });
+
+      elements.runAllButton.addEventListener("click", async () => {
+        try {
+          await runAllStages();
+        } catch (error) {
+          console.error(error);
+        }
+      });
+
       function render() {
+        elements.apiKey.value = state.settings.apiKey || "";
+        elements.modelName.value = state.settings.model || "gpt-4.1-mini";
         renderStepper();
         renderForm();
         renderPreview();

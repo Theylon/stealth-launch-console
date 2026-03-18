@@ -28,6 +28,14 @@ The app runs through:
 
 It produces a markdown `coming out of stealth` PR document with intermediate strategy outputs visible in the UI.
 
+The app now supports runtime OpenAI stage execution:
+
+- testers enter their own API key in the browser
+- each stage can be run individually through the OpenAI Responses API
+- `Run All Stages` generates all five deliverables in sequence
+
+Because this is hosted on GitHub Pages, secrets are not stored server-side. The key is saved only in the local browser for testing.
+
 ## Hosting
 
 The repository includes [deploy-pages.yml](/Users/eylon/Claude/marketing/.github/workflows/deploy-pages.yml) for GitHub Pages deployment through GitHub Actions.

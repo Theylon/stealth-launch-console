@@ -83,10 +83,12 @@ The press release package includes:
 The current MVP is intentionally static:
 
 - one root [index.html](/Users/eylon/Claude/marketing/index.html)
+- one app surface at [app/index.html](/Users/eylon/Claude/marketing/app/index.html)
 - no backend
 - no build step
 - local browser persistence via `localStorage`
 - markdown export via client-side download
+- runtime BYOK OpenAI calls from the browser for stage generation
 
 This keeps the first version easy to host and easy to hand to an external company.
 
